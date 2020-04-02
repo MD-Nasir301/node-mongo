@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Mongo Clint</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+</head>
+<body>
+    <h1>Mongo Clint</h1>
+    <p id="user"></p>
+    <div class="container">
+        <div class="row">
+            <input id="name" type="text" placeholder="Product Name" class="form-control">
+            <input id="price" type="text" placeholder="Price" class="form-control">
+            <input id="stock" type="text" placeholder="Stock" class="form-control">
+            <button id="addProduct">Add Product</button>
+        </div>
+        <p style="display: none;" id="success">Successfully send</p>
+        <ul id="product-list"></ul>
+    </div>
+    <script>
+        // get data
+        fetch('http://localhost:3100/product')
+        .then(res=> res.json())
+        .then(data => {
+            displayProduct(data);
+        });
+        function displayProduct(data){
+            const productList =  document.getElementById('product-list')
+            for (let i = 0; i < data.length; i++) {
+                const product = data[i];
+                appendProduct(product,productList)
+            }
+        }
+        function appendProduct(product,productList){
+            const item = document.createElement('li')
+            item.setAttribute("id", "list-item")
+            item.innerText = `name: ${product.name}, price:$${product.price}, available:${product.stock}  `
+            productList.appendChild(item)
+        }
+
+
+    //add Product 
+        const addProduct = document.getElementById('addProduct')
+        addProduct.addEventListener('click', ()=> {
+            const name = document.getElementById('name').value
+            const price = document.getElementById('price').value
+            const stock = document.getElementById('stock').value
+            const product = {name,price,stock}
+     //post
+           fetch('http://localhost:3100/addProduct', {
+                method: 'POST',
+                body: JSON.stringify(product),
+                headers: {
+                "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                updateProduct(data);
+                document.getElementById('success').style.display = "block";
+                setTimeout(()=>{
+                    document.getElementById('success').style.display = "none"
+                },3000)
+            }) 
+        })
+        function updateProduct(product){
+            const productList =  document.getElementById('product-list')
+            appendProduct(product,productList);
+            document.getElementById("user").innerText = product.name
+        }
+
+
+        // document.getElementById("product-list").addEventListener("click",function(e) {
+        //     var tgt = e.target;
+        //     if (tgt.tagName.toUpperCase() == "LI") {
+        //         tgt.parentNode.removeChild(tgt); // or tgt.remove();
+        //     }
+        // });
+
+    </script>
+</body>
+</html>
