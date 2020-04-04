@@ -15,11 +15,11 @@ const fruit = {
     app.use(cors())
     app.use(bodyParser.json())
 
+    
 //Database connection 
-const pass = process.env.DB_PASS
-const user = process.env.DB_USER
 const uri = process.env.DB_PATH;
 //Database connection end
+
 
 
 
@@ -47,7 +47,27 @@ const uri = process.env.DB_PATH;
       const client = new MongoClient(uri, { useNewUrlParser: true });
       client.connect(err => {
         const collection = client.db("myData").collection("product");
-        collection.insertOne(product,(err,result) =>{  
+        collection.insert(product,(err,result) =>{  
+          if(err){
+            console.log("data",err); 
+          }else{
+            res.send(result.ops[0]) 
+            console.log("data",result);
+          }
+        })
+        client.close();
+      });
+
+    })
+    //post order
+    app.post('/placeOrder', (req,res)=>{
+      const orderDetails = req.body 
+      orderDetails.orderTime = new Date()
+      console.log(orderDetails);
+      const client = new MongoClient(uri, { useNewUrlParser: true });
+      client.connect(err => {
+        const collection = client.db("myData").collection("order");
+        collection.insertOne(orderDetails,(err,result) =>{  
           if(err){
             console.log("data",err); 
           }else{
@@ -66,11 +86,42 @@ const uri = process.env.DB_PATH;
       res.send(fruit)
     })
 
-  const name = ["Babu","Nasir","Nbk","Rakib"]
-  app.get('/user/:id',  (req, res) => {
-      const id = req.params.id
-      const user = name[id]
-      res.send({id,user})
+
+
+  app.get('/product/:key',  (req, res) => {
+      const key = req.params.key
+
+      const client = new MongoClient(uri, { useNewUrlParser: true });
+      client.connect(err => {
+        const collection = client.db("myData").collection("product");
+        collection.find({key}).toArray((err,documents) =>{  
+          if(err){
+            console.log("data",err); 
+          }else{
+            res.send(documents[0]) 
+          }
+        })
+        client.close();
+      });
+    })
+
+
+  app.post('/getProductsByKey',  (req, res) => {
+      const key = req.params.key
+      const productKey = req.body 
+      console.log(productKey);
+      const client = new MongoClient(uri, { useNewUrlParser: true });
+      client.connect(err => {
+        const collection = client.db("myData").collection("product");
+        collection.find({ key: { $in: productKey } }).toArray((err,documents) =>{  
+          if(err){
+            console.log("data",err); 
+          }else{
+            res.send(documents) 
+          }
+        })
+        client.close();
+      });
     })
 
 
